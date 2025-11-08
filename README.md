@@ -1,4 +1,7 @@
 # MakeUC Project 2025
 
-Daniel Budke, Atharv Singh, Tam Le, Maite Peña
+Participants: Daniel Budke, Atharv Singh, Tam Le, Maite Peña
+
+Inspiration: 
+It is a chrome extension designed to make online shopping cart 
 
