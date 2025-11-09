@@ -1,5 +1,6 @@
-import { getSustainabilityInfo } from './sustainability';
-const express = require('express');
+import { sustainabilityModuleRouter } from './sustainability.js';
+import express from "express";
+
 const app = express();
 
 // Define a route for the root URL
@@ -21,3 +22,5 @@ app.use(express.static('public'));
 app.get('/about', (req, res) => {
   res.send('<h1>About Us</h1><p>We are a team of developers passionate about Node.js and Express.js.</p>');
 });
+
+app.use(sustainabilityModuleRouter);
