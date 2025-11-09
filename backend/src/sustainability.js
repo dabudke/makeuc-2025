@@ -120,7 +120,7 @@ export async function getSustainabilityInfo(product) {
 
 export const sustainabilityModuleRouter = Router();
 
-sustainabilityModuleRouter.get("/sustainability", async (req, res) => {
+sustainabilityModuleRouter.get("/", async (req, res) => {
   console.log("got request for sustainability info");
   const { product } = req.query;
   if (!product) {

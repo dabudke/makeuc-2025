@@ -1,16 +1,17 @@
 import express, { response } from "express";
 
-import { insertTitle,searchTitle,isTitleInVectorDatabase } from "./vectorDB.js";
+import { insertTitle, searchTitle, isTitleInVectorDatabase } from "./vectorDB.js";
 import {
   sustainabilityModuleRouter,
   getSustainabilityInfo,
 } from "./sustainability.js";
+import { normalize } from "./normalization.js";
 
 const app = express();
 
 // Define a route for the root URL
 app.get("/", (req, res) => {
-  res.send("Hello, World!");
+  res.redirect("https://github.com/dabudke/makeuc-2025");
 });
 
 // Set the application to listen on a specific port
@@ -34,7 +35,7 @@ app.get("/about", (req, res) => {
 app.use("/sustainability", sustainabilityModuleRouter);
 
 app.get("/alternatives", async (req, res) => {
-  console.log("got request for sustainability info");
+  console.log("got request for alternatives info");
   const { product } = req.query;
   if (!product) {
     return res
@@ -52,11 +53,11 @@ app.get("/alternatives", async (req, res) => {
 
     const sustainabilityScore =
       (w1 * report.materials +
-      w2 * report.packaging +
-      w3 * report.carbonFootprint +
-      w4 * report.waterUsage +
-      w5 * report.recyclability +
-      w6 * report.ethicalLaborPractices)/60;
+        w2 * report.packaging +
+        w3 * report.carbonFootprint +
+        w4 * report.waterUsage +
+        w5 * report.recyclability +
+        w6 * report.ethicalLaborPractices) / 60;
 
 
 
@@ -64,28 +65,30 @@ app.get("/alternatives", async (req, res) => {
 
     const searchResult = await searchTitle(product);
 
-    const databaseAlternatives = await Promise.all(
-      searchResult.map(async(r)=>{
-        
+    const databaseAlternatives = (await Promise.all(
+      searchResult.map(async (r) => {
+
         console.log(r)
 
-        if(r.distance<0.1 && r.distance>-0.1){
-        
-        return {title:r.title,link:r.ASIN,sustainabilityScore:r.score}
-      }
+        if (r.distance > 0.3) {
+
+          return { title: r.title, link: r.ASIN, sustainabilityScore: r.score }
+        }
       })
-    )
-      
+    )).filter((t) => t !== undefined);
+    console.log("database: ", databaseAlternatives);
+
     const serpAPI_Key = process.env.SERP_API_KEY;
     const params = new URLSearchParams();
     params.append(
       "q",
-      `site:amazon.com Sustainable Alternatives to ${product} on Amazon`
+      `site:amazon.com Sustainable Alternatives to ${await normalize(product)} on Amazon`
     );
     const googleSearchResultsURL = `https://serpapi.com/search?${params.toString()}&api_key=${serpAPI_Key}`;
     const googleSearchResults = await fetch(googleSearchResultsURL);
     const data = await googleSearchResults.json();
 
+    console.log("SERP API data: ", data);
     // Print top 5 organic results
     const results = data.organic_results?.slice(0, 4) || [];
 
@@ -94,37 +97,39 @@ app.get("/alternatives", async (req, res) => {
         const alternativeProductReport = await getSustainabilityInfo(r.title);
         const alternativeProductSustainabilityScore =
           (w1 * alternativeProductReport.materials +
-          w2 * alternativeProductReport.packaging +
-          w3 * alternativeProductReport.carbonFootprint +
-          w4 * alternativeProductReport.waterUsage +
-          w5 * alternativeProductReport.recyclability +
-          w6 * alternativeProductReport.ethicalLaborPractices)/60;
+            w2 * alternativeProductReport.packaging +
+            w3 * alternativeProductReport.carbonFootprint +
+            w4 * alternativeProductReport.waterUsage +
+            w5 * alternativeProductReport.recyclability +
+            w6 * alternativeProductReport.ethicalLaborPractices) / 60;
 
         const alternativeProduct = {
           title: r.title,
           link: r.link,
           sustainabilityScore: alternativeProductSustainabilityScore,
-          summary:alternativeProductReport
+          summary: alternativeProductReport
         };
 
-        if(!isTitleInVectorDatabase(r.title)&&alternativeProductSustainabilityScore>0.8){
-          insertTitle(r,title,r.link,alternativeProductSustainabilityScore)
+        console.log("sustainability score: ", alternativeProductSustainabilityScore);
+        if (!isTitleInVectorDatabase(r.title) && alternativeProductSustainabilityScore > 0.6) {
+          insertTitle(r, title, r.link, alternativeProductSustainabilityScore)
         }
 
 
         console.log(alternativeProduct);
         return alternativeProduct;
       }
-      
 
-    )
+
+      )
     );
+
+    console.log("alternativesList: ", alternativesList);
 
     const result = {
       sustainabilityScore: sustainabilityScore,
       alternatives: databaseAlternatives.concat(alternativesList),
     };
-    console.log(result);
     res.json(result);
   } catch (error) {
     console.error("Error generating sustainability report:", error);
