@@ -104,6 +104,7 @@ app.get("/alternatives", async (req, res) => {
           title: r.title,
           link: r.link,
           sustainabilityScore: alternativeProductSustainabilityScore,
+          summary:alternativeProductReport
         };
 
         if(!isTitleInVectorDatabase(r.title)&&alternativeProductSustainabilityScore>0.8){
