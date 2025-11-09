@@ -1,4 +1,4 @@
-#EcoPick
+#EcoCart
 
 Participants: Daniel Budke, Atharv Singh, Tam Le, Maite Peña
 
