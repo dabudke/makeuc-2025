@@ -1,9 +1,18 @@
 import React from "react";
 import ReactDOM from "react-dom/client";
 
-// function get
-
 function Popup(props) {
+  // send message to active tab and log the response
+  function handleScrape() {
+    chrome.tabs.query({ active: true, currentWindow: true }, (tabs) => {
+      const tab = tabs && tabs[0];
+      if (!tab) return;
+      chrome.tabs.sendMessage(tab.id, { action: 'extractCart' }, (response) => {
+        console.log('scrape response:', response);
+      });
+    });
+  }
+
   return <div className="container">
     <div className="header">
       <h1>📦 Cart Scraper</h1>
@@ -12,7 +21,7 @@ function Popup(props) {
 
     <div id="status" className="status hidden" />
 
-    <button id="scrapeBtn" className="btn-primary" onClick={() => {alert()}}>
+    <button id="scrapeBtn" className="btn-primary" onClick={handleScrape}>
       📊 Scrape Cart
     </button>
 
@@ -20,7 +29,7 @@ function Popup(props) {
       💾 Download JSON
     </button>
 
-    <button id="sendBtn" className="btn-secondary" disabled onClick={() => {alert()}}>
+    <button id="sendBtn" className="btn-secondary" disabled>
       📤 Send to API
     </button>
 
