@@ -1,5 +1,6 @@
 import express, { response } from "express";
 
+import { insertTitle,searchTitle,isTitleInVectorDatabase } from "./vectorDB.js";
 import {
   sustainabilityModuleRouter,
   getSustainabilityInfo,
@@ -33,7 +34,6 @@ app.get("/about", (req, res) => {
 app.use("/sustainability", sustainabilityModuleRouter);
 
 app.get("/alternatives", async (req, res) => {
-  const alternativesList = [];
   console.log("got request for sustainability info");
   const { product } = req.query;
   if (!product) {
@@ -51,13 +51,31 @@ app.get("/alternatives", async (req, res) => {
     const w6 = 1;
 
     const sustainabilityScore =
-      w1 * report.materials +
+      (w1 * report.materials +
       w2 * report.packaging +
       w3 * report.carbonFootprint +
       w4 * report.waterUsage +
       w5 * report.recyclability +
-      w6 * report.ethicalLaborPractices;
+      w6 * report.ethicalLaborPractices)/60;
 
+
+
+
+
+    const searchResult = await searchTitle(product);
+
+    const databaseAlternatives = await Promise.all(
+      searchResult.map(async(r)=>{
+        
+        console.log(r)
+
+        if(r.distance<0.1 && r.distance>-0.1){
+        
+        return {title:r.title,link:r.ASIN,sustainabilityScore:r.score}
+      }
+      })
+    )
+      
     const serpAPI_Key = process.env.SERP_API_KEY;
     const params = new URLSearchParams();
     params.append(
@@ -75,12 +93,12 @@ app.get("/alternatives", async (req, res) => {
       results.map(async (r) => {
         const alternativeProductReport = await getSustainabilityInfo(r.title);
         const alternativeProductSustainabilityScore =
-          w1 * alternativeProductReport.materials +
+          (w1 * alternativeProductReport.materials +
           w2 * alternativeProductReport.packaging +
           w3 * alternativeProductReport.carbonFootprint +
           w4 * alternativeProductReport.waterUsage +
           w5 * alternativeProductReport.recyclability +
-          w6 * alternativeProductReport.ethicalLaborPractices;
+          w6 * alternativeProductReport.ethicalLaborPractices)/60;
 
         const alternativeProduct = {
           title: r.title,
@@ -88,14 +106,23 @@ app.get("/alternatives", async (req, res) => {
           sustainabilityScore: alternativeProductSustainabilityScore,
         };
 
+        if(!isTitleInVectorDatabase(r.title)&&alternativeProductSustainabilityScore>0.8){
+          insertTitle(r,title,r.link,alternativeProductSustainabilityScore)
+        }
+
+
         console.log(alternativeProduct);
         return alternativeProduct;
-      })
+      }
+      
+
+
+    )
     );
 
     const result = {
       sustainabilityScore: sustainabilityScore,
-      alternatives: alternativesList,
+      alternatives: databaseAlternatives.concat(alternativesList),
     };
     console.log(result);
     res.json(result);

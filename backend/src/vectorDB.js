@@ -1,4 +1,5 @@
-import { GoogleGenAI } from "@google/genai";
+import { GoogleGenAI, TurnCompleteReason } from "@google/genai";
+import { da } from "zod/v4/locales";
 
 const vector_DB_URL = process.env.VECTOR_DB_URL;
 const vector_DB_TOKEN = process.env.VECTOR_DB_TOKEN;
@@ -10,26 +11,27 @@ async function getEmbeding(title) {
     model: "gemini-embedding-001",
     contents: title,
     config: {
-        outputDimensionality: 768,
-    }
+      outputDimensionality: 768,
+    },
   });
   return response.embeddings;
 }
 
-async function insertTitle(title,ASIN=0) {
+export async function insertTitle(title, ASIN = 0,score=0) {
   const embeddings = await getEmbeding(title);
   const vector = embeddings[0]["values"];
   console.log(vector);
 
-  const postData = { collectionName: "collection", data: [{ vector: vector,ASIN:ASIN}] };
+  const postData = {
+    collectionName: "collection",
+    data: [{ vector: vector, ASIN: ASIN,score: score,title:title}],
+  };
 
-  const url =
-    `${vector_DB_URL}/insert`;
+  const url = `${vector_DB_URL}/insert`;
   const options = {
     method: "POST",
     headers: {
-      Authorization:
-        `Bearer ${vector_DB_TOKEN}`,
+      Authorization: `Bearer ${vector_DB_TOKEN}`,
       Accept: "application/json",
       "Content-Type": "application/json",
     },
@@ -45,21 +47,24 @@ async function insertTitle(title,ASIN=0) {
   }
 }
 
-async function searchTitle(title) {
-    const vectorDB = process.env.VECTOR_DB_URL;
+export async function searchTitle(title) {
+  const vectorDB = process.env.VECTOR_DB_URL;
   const embeddings = await getEmbeding(title);
   const vector = embeddings[0]["values"];
   console.log(vector);
 
-  const postData = { collectionName: "collection", data: [vector] ,limit: 3, outputFields: ["ASIN"]};
+  const postData = {
+    collectionName: "collection",
+    data: [vector],
+    limit: 3,
+    outputFields: ["ASIN","score","title"],
+  };
 
-  const url =
-    `${vector_DB_URL}/search`;
+  const url = `${vector_DB_URL}/search`;
   const options = {
     method: "POST",
     headers: {
-      Authorization:
-        `Bearer ${vector_DB_TOKEN}`,
+      Authorization: `Bearer ${vector_DB_TOKEN}`,
       Accept: "application/json",
       "Content-Type": "application/json",
     },
@@ -70,14 +75,23 @@ async function searchTitle(title) {
     const response = await fetch(url, options);
     const data = await response.json();
     console.log(data["data"]);
-    return data["data"]
+
+    return data["data"];
   } catch (error) {
     console.error(error);
-    return Error
+    return Error;
   }
 }
 
-searchTitle("Winterdsvdf Jacket")
+export async function isTitleInVectorDatabase(title) {
+  const searchResult = await searchTitle(title);
+  const embeddings = await getEmbeding(title);
+  const vector = embeddings[0]["values"];
+  if(vector == searchResult[0]["vector"]){
+    return true;
+  }
+  return false;
+}
 
 // Output:
 // "data": [

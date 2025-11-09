@@ -1,6 +1,7 @@
 import z from "zod";
 import { GoogleGenAI } from "@google/genai";
 import { Router } from "express";
+import { classify } from "./zero-shot-classification.js";
 
 const sustainabilitySchema = z.object({
   materials: z
@@ -73,7 +74,11 @@ const sustainabilitySchema = z.object({
 const ai = new GoogleGenAI({ apiKey: process.env.GEMINI_API_KEY });
 
 export async function getSustainabilityInfo(product) {
-  const researchPrompt = `You are a sustainability expert. Research the product "${product}" and provide a detailed evaluation of the products sustainability in the following categories: materials, packaging, carbon footprint, water usage, recyclability, and ethical labor practices. Use the provided tools as necessary to gather accurate and up-to-date information.`;
+
+
+  const category = await classify(product)
+
+  const researchPrompt = `You are a sustainability expert. Research the ${category} product "${product}" and provide a detailed evaluation of the products sustainability in the following categories: materials, packaging, carbon footprint, water usage, recyclability, and ethical labor practices. Use the provided tools as necessary to gather accurate and up-to-date information.`;
 
   try {
     const research = await ai.models.generateContent({
