@@ -16,7 +16,7 @@
         "https://*.amazon.com/gp/cart/*",
         "https://*.amazon.com/gp/cart/view.html"
       ],
-    "js": ["src/content/content.jsx"]
+    "js": ["src/content/cart_page.jsx"]
     }
   ],
   "background": {

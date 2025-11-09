@@ -1,8 +1,6 @@
 chrome.runtime.onMessage.addListener((request, sender, sendResponse) => {
-  if (request.action === 'saveCartItems') {
-    chrome.storage.local.set({ cartItems: request.items }, () => {
-      sendResponse({ success: true });
-    });
+  if (request.action === 'cartData') {
+    console.log("Received cart data:", request.items);
   }
 });
 
