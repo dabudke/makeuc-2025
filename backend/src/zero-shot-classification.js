@@ -15,9 +15,9 @@ async function query(data) {
 }
 
 const classify = async (title) => {
-  await query({
+  return query({
     inputs:
-    title,
+      title,
     parameters: {
       candidate_labels: ["Clothes", "Food", "Cosmetic", "Electronics"],
     },
@@ -30,17 +30,17 @@ const classify = async (title) => {
       prev && prev["score"] > current["score"] ? prev : current
     );
     if (max["score"] > 0.5) {
-        console.log(max["label"])
-        return max["label"];
+      console.log(max["label"])
+      return max["label"];
     }
     return "Other";
-    
+
   });
 };
 
 async function test() {
-    const result = await classify("TACVASEN Men's Winter Skiing Jackets Water Resistant Fleece Coats Insulated Thermal Snowboard Jacket Parka Raincoat with Hood")
-    console.log(result)
+  const result = await classify("TACVASEN Men's Winter Skiing Jackets Water Resistant Fleece Coats Insulated Thermal Snowboard Jacket Parka Raincoat with Hood")
+  console.log(result)
 }
 
 test()
