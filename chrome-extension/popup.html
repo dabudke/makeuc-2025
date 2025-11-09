@@ -1,0 +1,41 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Amazon Cart Scraper</title>
+  <link rel="stylesheet" href="popup.css">
+</head>
+<body>
+  <div class="container">
+    <div class="header">
+      <h1>📦 Cart Scraper</h1>
+      <p>Extract Amazon cart items</p>
+    </div>
+
+    <div id="status" class="status hidden"></div>
+
+    <button id="scrapeBtn" class="btn-primary">
+      📊 Scrape Cart
+    </button>
+
+    <button id="downloadBtn" class="btn-secondary" disabled>
+      💾 Download JSON
+    </button>
+
+    <div id="results" class="results hidden">
+      <div class="results-header">
+        <h3>Found <span id="itemCount">0</span> items</h3>
+        <button id="clearBtn" class="btn-small">Clear</button>
+      </div>
+      <div id="itemsList" class="items-list"></div>
+    </div>
+
+    <div class="footer">
+      <small>Amazon Cart Scraper v1.0.0</small>
+    </div>
+  </div>
+
+  <script src="popup.js"></script>
+</body>
+</html>

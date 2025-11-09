@@ -1,0 +1,21 @@
+{
+  "manifest_version": 3,
+  "name": "Amazon Cart Scraper",
+  "version": "1.0.0",
+  "description": "Extract and download Amazon shopping cart items with prices and quantities",
+  "permissions": ["activeTab", "scripting", "storage"],
+  "host_permissions": ["https://www.amazon.com/*"],
+  "action": {
+    "default_title": "Scrape Amazon Cart",
+    "default_popup": "popup.html"
+  },
+  "content_scripts": [
+    {
+      "matches": ["https://www.amazon.com/gp/cart/*"],
+      "js": ["content.js"]
+    }
+  ],
+  "background": {
+    "service_worker": "background.js"
+  }
+}
