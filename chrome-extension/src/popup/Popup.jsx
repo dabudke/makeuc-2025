@@ -149,10 +149,10 @@ function Popup() {
     if (selectedIndex == null) return;
     const url = new URL("http://localhost:3000/alternatives");
     url.searchParams.append("product", items[selectedIndex]?.title || "ERROR");
-    fetch(url).then((res) => {
-      const data = res.json();
+    fetch(url).then(async (res) => {
+      const data = await res.json();
       console.log("fetched alternatives:", data);
-      setAlternatives(data);
+      setAlternatives(data.alternatives);
     }
 
     ).catch(console.error);
@@ -164,8 +164,7 @@ function Popup() {
   return (
   <div className="container" onClick={(e) => { if (e.target === e.currentTarget && !items.length) handleScrape(); }}>
       <div className="header">
-        <h1>📦 Cart Scraper</h1>
-        <p>Extract Amazon cart items</p>
+        <h1>EcoCart</h1>
       </div>
 
       <div id="status" className="status hidden" />
@@ -203,17 +202,13 @@ function Popup() {
           <div style={{ fontWeight: 700, marginBottom: 8 }}>Sustainable alternatives</div>
           {selectedItem ? (
             <div>
-              {[1,2,3,4,5].map(n => (
-                <div key={n} className="card" style={{ marginBottom: 8 }}>
-                  <div className="card-header">
-                    <div className="title">Placeholder alt #{n}</div>
-                    <div className="sustainability">Low Impact</div>
-                  </div>
-                  <div className="details" style={{ marginTop: 8 }}>
-                    <div className="placeholder">Short description and reason why this is a sustainable alternative for "{selectedItem.title}".</div>
-                  </div>
-                </div>
-              ))}
+              {alternatives.map((alt) => {
+                console.log(alt);
+                if (!alt.title) return null;
+                return (<a key={alt.asin} style={{ marginBottom: 8 }} href={alt.link} target="_blank" rel="noreferrer">
+                    <div className="title">{alt.title}</div>
+                </a>);
+              })}
             </div>
           ) : (
             <div className="placeholder">Click an item to see sustainable alternatives</div>
@@ -222,7 +217,7 @@ function Popup() {
       </div>
 
       <div className="footer">
-        <small>Amazon Cart Scraper v1.0.0</small>
+        <small>EcoCart v1.0.0</small>
       </div>
     </div>
   );

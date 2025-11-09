@@ -199,7 +199,7 @@ document.addEventListener('DOMContentLoaded', () => {
     setButtons(false);
 
     try {
-      const url = new URL('http://localhost:3000/sustainability/bulk');
+      const url = new URL('http://ecocart.tech/sustainability/bulk');
       url.searchParams.append('data', JSON.stringify(items.map((it) => it.name)));
       const res = await fetch(url, {
         method: 'GET',

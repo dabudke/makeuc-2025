@@ -6,7 +6,7 @@ async function dispatchNextReport() {
   }
 
   const item = cartItems[currentItem];
-  const apiUrl = new URL("http://localhost:3000/sustainability");
+  const apiUrl = new URL("http://localhost:3000/sustainability/");
   apiUrl.searchParams.append("product", item?.title || "ERROR");
   const nextItemIndex = currentItem + 1;
 
