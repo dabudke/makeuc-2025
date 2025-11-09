@@ -14,6 +14,7 @@ async function dispatchNextReport() {
 
   const data = await fetch(apiUrl)
     .then(response => {
+      console.log(response);
       if (!response.ok) {
         console.error("sustainability report failed:", response.statusText);
         return null;
@@ -56,6 +57,16 @@ chrome.runtime.onMessage.addListener((request, sender, sendResponse) => {
     chrome.storage.session.set({ cartItems: items, currentItem: 0 });
 
     dispatchNextReport();
+  } else if (request.action === 'getReports') {
+    chrome.storage.session.get({"sustainabilityReports": []}).then(data => {
+      sendResponse(data.sustainabilityReports);
+    });
+    return true; // indicate async response
+  } else if (request.action === 'getCart') {
+    chrome.storage.session.get({"cartItems": []}).then(data => {
+      sendResponse({ items: data.cartItems });
+    });
+    return true; // indicate async response
   }
 });
 
