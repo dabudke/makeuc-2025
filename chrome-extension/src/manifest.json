@@ -7,7 +7,7 @@
   "host_permissions": ["https://*.amazon.com/*", "http://localhost:3000/*"],
   "action": {
     "default_title": "Scrape Amazon Cart",
-    "default_popup": "src/popup/index.html"
+    "default_popup": "popup/index.html"
   },
   "content_scripts": [
     {
@@ -16,10 +16,10 @@
         "https://*.amazon.com/gp/cart/*",
         "https://*.amazon.com/gp/cart/view.html"
       ],
-    "js": ["src/content/cart_page.jsx"]
+      "js": ["content/cart_page.jsx"]
     }
   ],
   "background": {
-    "service_worker": "src/background/background.jsx"
+    "service_worker": "background/background.jsx"
   }
 }

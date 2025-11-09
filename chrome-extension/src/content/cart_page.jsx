@@ -50,19 +50,15 @@ export async function extractCartItems() {
   return items;
 }
 
-// keep message listener so popup/background can request scraping
-if (typeof chrome !== 'undefined' && chrome.runtime && chrome.runtime.onMessage) {
-  chrome.runtime.onMessage.addListener((request, sender, sendResponse) => {
-    if (request && request.action === 'extractCart') {
-      (async () => {
-        try {
-          const items = await extractCartItems();
-          sendResponse({ success: true, itemCount: items.length, items });
-        } catch (e) {
-          sendResponse({ success: false, error: e && e.message ? e.message : String(e) });
-        }
-      })();
-      return true; // indicates async response
-    }
-  });
-}
+extractCartItems().then(items => {
+  chrome.runtime.sendMessage({ action: 'cartData', items });
+});
+
+chrome.runtime.onMessage.addListener((message, sender, sendResponse) => {
+  if (message.action === 'extractCartItems') {
+    extractCartItems().then(items => {
+      sendResponse({ items });
+    });
+    return true; // indicate async response
+  }
+});

@@ -5,11 +5,13 @@ import tailwindcss from "@tailwindcss/vite";
 import webExtension from "vite-plugin-web-extension";
 
 export default defineConfig({
+  mode: "development",
+  root: "./src",
   plugins: [
     tailwindcss(),
     react(),
     webExtension({
-      manifest: './src/manifest.json'
+      manifest: './manifest.json'
     }),
     // viteStaticCopy({
     //   targets: [
@@ -21,7 +23,8 @@ export default defineConfig({
     // })
   ],
   build: {
-    outDir: './dist',
+    outDir: '../dist',
+    sourcemap: true,
     rollupOptions: {
       // input: {
       //   popup: "src/popup/index.html",
