@@ -117,7 +117,6 @@ app.get("/alternatives", async (req, res) => {
       }
       
 
-
     )
     );
 

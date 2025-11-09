@@ -1,5 +1,7 @@
 import { GoogleGenAI, TurnCompleteReason } from "@google/genai";
 import { da } from "zod/v4/locales";
+import { classify } from "./zero-shot-classification.js";
+import { normalize } from "./normalization.js";
 
 const vector_DB_URL = process.env.VECTOR_DB_URL;
 const vector_DB_TOKEN = process.env.VECTOR_DB_TOKEN;
@@ -17,14 +19,16 @@ async function getEmbeding(title) {
   return response.embeddings;
 }
 
-export async function insertTitle(title, ASIN = 0,score=0) {
-  const embeddings = await getEmbeding(title);
+export async function insertTitle(title, ASIN = 0, score = 0) {
+  const category = await classify(title);
+  const norm = await normalize(title);
+  const embeddings = await getEmbeding(norm+category);
   const vector = embeddings[0]["values"];
   console.log(vector);
 
   const postData = {
     collectionName: "collection",
-    data: [{ vector: vector, ASIN: ASIN,score: score,title:title}],
+    data: [{ vector: vector, ASIN: ASIN, score: score, title: title }],
   };
 
   const url = `${vector_DB_URL}/insert`;
@@ -49,7 +53,9 @@ export async function insertTitle(title, ASIN = 0,score=0) {
 
 export async function searchTitle(title) {
   const vectorDB = process.env.VECTOR_DB_URL;
-  const embeddings = await getEmbeding(title);
+  const category = await classify(title);
+  const norm = await normalize(title);
+  const embeddings = await getEmbeding(norm+category);
   const vector = embeddings[0]["values"];
   console.log(vector);
 
@@ -57,7 +63,7 @@ export async function searchTitle(title) {
     collectionName: "collection",
     data: [vector],
     limit: 3,
-    outputFields: ["ASIN","score","title"],
+    outputFields: ["ASIN", "score", "title"],
   };
 
   const url = `${vector_DB_URL}/search`;
@@ -83,14 +89,17 @@ export async function searchTitle(title) {
   }
 }
 
-export async function isTitleInVectorDatabase(title) {
-  const searchResult = await searchTitle(title);
-  const embeddings = await getEmbeding(title);
-  const vector = embeddings[0]["values"];
-  if(vector == searchResult[0]["vector"]){
-    return true;
+export async function isTitleInVectorDatabase(title, link) {
+  try {
+    const searchResult = await searchTitle(title);
+    searchResult.forEach((r) => {
+      if (link == r["ASIN"]) {
+        return true;
+      }
+    });
+  } catch (error) {
+    return false;
   }
-  return false;
 }
 
 // Output:

@@ -1,9 +1,9 @@
 import { GoogleGenAI } from "@google/genai";
 
-const ai = new GoogleGenAI({ apiKey: process.env.GEMINI_API_KEY });
-const title = "pepsi"
+const ai = new GoogleGenAI({ apiKey: process.env.GEMINI_API_KEY2 });
 
-async function main() {
+
+export async function normalize(title) {
   const response = await ai.models.generateContent({
     model: "gemini-2.5-flash",
     contents: `
@@ -13,6 +13,5 @@ async function main() {
   `,
   });
   console.log(response.text);
+  return response.text;
 }
-
-await main();
