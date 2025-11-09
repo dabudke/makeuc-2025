@@ -1,3 +1,4 @@
+import { getSustainabilityInfo } from './sustainability';
 const express = require('express');
 const app = express();
 
@@ -9,7 +10,7 @@ app.get('/', (req, res) => {
 // Set the application to listen on a specific port
 const PORT = process.env.PORT;
 const IP = process.env.IP;
-app.listen(PORT,IP, () => {
+app.listen(PORT, IP, () => {
   console.log(`Server running on port ${PORT}`);
 });
 

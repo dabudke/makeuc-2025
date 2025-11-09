@@ -1,8 +1,11 @@
 {
+  "type": "module",
   "dependencies": {
-    "express": "^5.1.0"
+    "@google/genai": "^1.29.0",
+    "express": "^5.1.0",
+    "zod": "^4.1.12"
   },
   "scripts": {
-    "dev":"node --env-file=.env app.js"
+    "dev": "node --env-file=.env src/app.js"
   }
 }
