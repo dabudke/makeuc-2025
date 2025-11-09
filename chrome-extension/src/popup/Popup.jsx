@@ -1,14 +1,20 @@
-import React, { useState, useEffect } from "react";
+import { useState, useEffect } from "react";
 import ReactDOM from "react-dom/client";
 
 function Popup() {
   const [items, setItems] = useState([]);
   const [selectedIndex, setSelectedIndex] = useState(null);
+  const [alternatives, setAlternatives] = useState([]);
+
+  chrome.runtime.onMessage.addListener((message, sender, sendResponse) => {
+    if (message.action === 'reportProcessed') {
+      console.log(message);
+    }
+  });
 
   // send message to active tab and store the response items
   function handleScrape() {
     chrome.tabs.query({ active: true, currentWindow: true }, (tabs) => {
-      console.log("help");
       const tab = tabs && tabs[0];
       if (!tab) return;
       chrome.tabs.sendMessage(tab.id, { action: 'extractCartItems' }, (response) => {
@@ -76,21 +82,26 @@ function Popup() {
           return;
         }
         console.log('scrape response:', response);
-
-        if (response && Array.isArray(response.items)) {
-          setItems(response.items);
-          setSelectedIndex(null);
-        } else if (response && response.success && Array.isArray(response.items)) {
-          setItems(response.items);
-          setSelectedIndex(null);
-        }
       });
+    });
+
+    chrome.runtime.sendMessage( {action: "getCart"}, (response) => {
+      console.log("cart response:", response);
+      if (response && Array.isArray(response.items)) {
+        setItems(response.items);
+        setSelectedIndex(null);
+      }
+    });
+    
+    chrome.runtime.sendMessage({ action: "getReports" }, (response) => {
+      console.log("reports response:", response);
     });
   }
 
   function handleClear() {
     setItems([]);
     setSelectedIndex(null);
+    setAlternatives([]);
   }
 
   // on mount: load any existing cartItems and sustainabilityReports
@@ -134,6 +145,20 @@ function Popup() {
     };
   }, []);
 
+  useEffect(() => {
+    if (selectedIndex == null) return;
+    const url = new URL("http://localhost:3000/alternatives");
+    url.searchParams.append("product", items[selectedIndex]?.title || "ERROR");
+    fetch(url).then((res) => {
+      const data = res.json();
+      console.log("fetched alternatives:", data);
+      setAlternatives(data);
+    }
+
+    ).catch(console.error);
+    return () => { };
+  }, [selectedIndex]);
+
   const selectedItem = selectedIndex != null ? items[selectedIndex] : null;
 
   return (
@@ -151,7 +176,7 @@ function Popup() {
         <div style={{ flex: 1 }}>
           <div className="results-header">
             <h3>Found <span id="itemCount">{items.length}</span> items</h3>
-            <button id="clearBtn" className="btn-small" onClick={handleClear}>Clear</button>
+            <button id="clearBtn" className="btn-small" onClick={() => handleClear()}>Clear</button>
           </div>
 
           <div id="itemsList" className="items-list">

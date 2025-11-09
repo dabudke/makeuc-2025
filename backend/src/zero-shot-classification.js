@@ -14,7 +14,7 @@ async function query(data) {
   return result;
 }
 
-const classify = async (title) => {
+export const classify = async (title) => {
   return query({
     inputs:
       title,
@@ -33,7 +33,7 @@ const classify = async (title) => {
       console.log(max["label"])
       return max["label"];
     }
-    return "Other";
+    return "";
 
   });
 };
