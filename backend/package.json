@@ -6,7 +6,7 @@
     "zod": "^4.1.12"
   },
   "scripts": {
-    "prod":"node src/app.js",
+    "prod":"npm install && node src/app.js",
     "dev": "node --env-file=.env src/app.js",
     "build":"echo 'builded'"
   }

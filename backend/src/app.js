@@ -14,7 +14,7 @@ app.get("/", (req, res) => {
 });
 
 // Set the application to listen on a specific port
-const PORT = process.env.PORT;
+const PORT = process.env.PORT || 3000;
 const IP = process.env.IP;
 
 app.listen(PORT, () => {
