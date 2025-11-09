@@ -27,9 +27,24 @@ async function dispatchNextReport() {
 
   const { sustainabilityReports } = await chrome.storage.session.get({"sustainabilityReports": []});
   console.log(sustainabilityReports);
-  sustainabilityReports.push(data);
-  await chrome.storage.session.set({ sustainabilityReports });
-  chrome.runtime.sendMessage({ action: "reportProcessed" });
+  // only store a report if we actually fetched something
+  if (data !== null) {
+    sustainabilityReports.push(data);
+    await chrome.storage.session.set({ sustainabilityReports });
+  } else {
+    // push a placeholder so index progress remains consistent
+    sustainabilityReports.push({ error: 'fetch_failed' });
+    await chrome.storage.session.set({ sustainabilityReports });
+  }
+
+  // send a notification (if any part of the extension is listening). Use a callback
+  // so we can safely ignore "no receiver" runtime errors.
+  chrome.runtime.sendMessage({ action: "reportProcessed" }, () => {
+    if (chrome.runtime.lastError) {
+      // no receiver - that's fine in many cases (popup closed). Log at debug level.
+      console.debug('reportProcessed: no receiver:', chrome.runtime.lastError.message);
+    }
+  });
   dispatchNextReport();
 }
 
