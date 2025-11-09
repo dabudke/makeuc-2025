@@ -77,3 +77,31 @@ sustainabilityModuleRouter.get('/sustainability', async (req, res) => {
     res.status(500).json({ error: "Failed to generate sustainability report" });
   }
 });
+
+sustainabilityModuleRouter.get('/sustanability/bulk', async (req, res) => {
+  const { data } = req.query;
+  if (!data) {
+    return res.status(400).json({ error: "Missing required query parameters: data" });
+  }
+  let products;
+  try {
+    products = JSON.parse(data);
+  } catch (e) {
+    return res.status(400).json({ error: "Invalid JSON in data parameter" });
+  }
+  if (!Array.isArray(products)) {
+    return res.status(400).json({ error: "Data parameter should be a JSON array of product names" });
+  }
+
+  const results = [];
+  for (const product of products) {
+    try {
+      const report = await getSustainabilityInfo(product);
+      results.push({ product, report });
+    } catch (error) {
+      console.error(`Error generating sustainability report for ${product}:`, error);
+      results.push({ product, error: "Failed to generate sustainability report" });
+    }
+  }
+  res.json(results);
+})
