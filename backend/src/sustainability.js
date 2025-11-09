@@ -64,12 +64,13 @@ export async function getSustainabilityInfo(product) {
 export const sustainabilityModuleRouter = Router();
 
 sustainabilityModuleRouter.get('/sustainability', async (req, res) => {
-  const { merchant, product } = req.query;
-  if (!merchant || !product) {
-    return res.status(400).json({ error: "Missing required query parameters: merchant and product" });
+  console.log("got request for sustainability info")
+  const { product } = req.query;
+  if (!product) {
+    return res.status(400).json({ error: "Missing required query parameters: product" });
   }
   try {
-    const report = await getSustainabilityInfo(merchant, product);
+    const report = await getSustainabilityInfo(product);
     res.json(report);
   } catch (error) {
     console.error("Error generating sustainability report:", error);
