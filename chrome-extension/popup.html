@@ -1,11 +1,13 @@
 <!DOCTYPE html>
 <html lang="en">
+
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>Amazon Cart Scraper</title>
   <link rel="stylesheet" href="popup.css">
 </head>
+
 <body>
   <div class="container">
     <div class="header">
@@ -23,6 +25,8 @@
       💾 Download JSON
     </button>
 
+    <button id="sendBtn" class="btn-secondary" disabled>📤 Send to API</button>
+
     <div id="results" class="results hidden">
       <div class="results-header">
         <h3>Found <span id="itemCount">0</span> items</h3>
@@ -38,4 +42,5 @@
 
   <script src="popup.js"></script>
 </body>
+
 </html>

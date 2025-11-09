@@ -4,7 +4,7 @@
   "version": "1.0.0",
   "description": "Extract and download Amazon shopping cart items with prices and quantities",
   "permissions": ["activeTab", "scripting", "storage"],
-  "host_permissions": ["https://*.amazon.com/*"],
+  "host_permissions": ["https://*.amazon.com/*", "http://localhost:3000/*"],
   "action": {
     "default_title": "Scrape Amazon Cart",
     "default_popup": "popup.html"

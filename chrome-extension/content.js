@@ -104,7 +104,7 @@ async function fetchProductDescriptionByAsin(asin) {
 async function extractCartItems() {
   const items = [];
   const cartItemElements = document.querySelectorAll(SELECTORS.cartItems);
-  
+
   for (let index = 0; index < cartItemElements.length; index++) {
     const element = cartItemElements[index];
     try {
@@ -113,12 +113,12 @@ async function extractCartItems() {
       const descriptionElement = element.querySelector(SELECTORS.description);
       const asinElement = element.querySelector(SELECTORS.asin);
       const removeLinkElement = element.querySelector(SELECTORS.removeLink);
-      
+
       // Skip items with no title (likely empty containers)
       if (!titleElement || !titleElement.textContent.trim()) {
         continue;
       }
-      
+
       // robust ASIN extraction: try element attribute, then child selectors, then URL parsing
       let asin = null;
       try {
@@ -157,13 +157,13 @@ async function extractCartItems() {
         asin: asin,
         description: description
       };
-      
-  items.push(item);
+
+      items.push(item);
     } catch (error) {
       console.error(`Error extracting item ${index}:`, error);
     }
   }
-  
+
   // fetch missing descriptions in parallel with limited concurrency
   try {
     await fetchDescriptionsForItems(items, 3);
@@ -225,5 +225,3 @@ chrome.runtime.onMessage.addListener((request, sender, sendResponse) => {
     return true;
   }
 });
-
-document.addEventListener('DOMContentLoaded', () => {});

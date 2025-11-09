@@ -1,6 +1,7 @@
 document.addEventListener('DOMContentLoaded', () => {
   const scrapeBtn = document.getElementById('scrapeBtn');
   const downloadBtn = document.getElementById('downloadBtn');
+  const sendBtn = document.getElementById("sendBtn");
   const clearBtn = document.getElementById('clearBtn');
   const resultsEl = document.getElementById('results');
   const itemsList = document.getElementById('itemsList');
@@ -22,6 +23,7 @@ document.addEventListener('DOMContentLoaded', () => {
 
   function setButtons(enabled) {
     downloadBtn.disabled = !enabled;
+    sendBtn.disabled = !enabled;
   }
 
   function renderItems(list) {
@@ -146,8 +148,6 @@ document.addEventListener('DOMContentLoaded', () => {
     URL.revokeObjectURL(url);
   }
 
-  // copy-to-clipboard removed per user request
-
   function clearResults() {
     items = [];
     renderItems(items);
@@ -189,8 +189,43 @@ document.addEventListener('DOMContentLoaded', () => {
     });
   }
 
+  async function sendToAPI() {
+    if (!items || !items.length) {
+      showStatus('No items available. Please scrape the cart first.', true);
+      return;
+    }
+
+    showStatus('Sending items to API...');
+    setButtons(false);
+
+    try {
+      const url = new URL('http://localhost:3000/sustainability');
+      url.searchParams.append('product', items[0].title);
+      const res = await fetch(url, {
+        method: 'GET',
+        headers: { 'Content-Type': 'application/json' },
+      });
+
+      if (!res.ok) {
+        const text = await res.text();
+        throw new Error(`API error ${res.status}: ${text}`);
+      }
+
+      const data = await res.json();
+      console.log('API response', data);
+      showStatus('Data successfully sent to API');
+    } catch (err) {
+      console.error(err);
+      showStatus('Failed to send data: ' + (err.message || err), true);
+    } finally {
+      setButtons(true);
+      setTimeout(() => showStatus(''), 2000);
+    }
+  }
+
   // attach handlers
   scrapeBtn.addEventListener('click', (e) => { scrape(); });
+  sendBtn.addEventListener('click', (e) => { sendToAPI(); });
   downloadBtn.addEventListener('click', downloadJSON);
   clearBtn.addEventListener('click', clearResults);
 
@@ -198,6 +233,7 @@ document.addEventListener('DOMContentLoaded', () => {
   setButtons(false);
   showStatus('');
 });
+
 /**
  * Popup Script - Handles UI interactions
  */
@@ -207,7 +243,7 @@ let currentItems = [];
 const elements = {
   scrapeBtn: document.getElementById('scrapeBtn'),
   downloadBtn: document.getElementById('downloadBtn'),
-  copyBtn: document.getElementById('copyBtn'),
+  // copyBtn: document.getElementById('copyBtn'),
   clearBtn: document.getElementById('clearBtn'),
   status: document.getElementById('status'),
   results: document.getElementById('results'),
@@ -235,12 +271,12 @@ function hideStatus() {
  */
 function displayItems(items) {
   currentItems = items;
-  
+
   if (items.length === 0) {
     elements.itemsList.innerHTML = '<div style="padding: 20px; text-align: center; color: #999;">No items found in cart</div>';
     return;
   }
-  
+
   elements.itemCount.textContent = items.length;
   elements.itemsList.innerHTML = items.map(item => `
     <div class="item">
@@ -286,7 +322,7 @@ function downloadJSON() {
     itemCount: currentItems.length,
     items: currentItems
   };
-  
+
   const blob = new Blob([JSON.stringify(data, null, 2)], { type: 'application/json' });
   const url = URL.createObjectURL(blob);
   const a = document.createElement('a');
@@ -296,7 +332,7 @@ function downloadJSON() {
   a.click();
   document.body.removeChild(a);
   URL.revokeObjectURL(url);
-  
+
   showStatus('✅ Downloaded successfully!', 'success');
   setTimeout(hideStatus, 3000);
 }
@@ -320,28 +356,27 @@ function copyToClipboard() {
 function scrapeCart() {
   elements.scrapeBtn.disabled = true;
   showStatus('🔍 Scraping cart...', 'loading');
-  
+
   chrome.tabs.query({ active: true, currentWindow: true }, (tabs) => {
     if (!tabs[0]) {
       showStatus('❌ No active tab found', 'error');
       elements.scrapeBtn.disabled = false;
       return;
     }
-    
+
     chrome.tabs.sendMessage(tabs[0].id, { action: 'extractCart' }, (response) => {
       elements.scrapeBtn.disabled = false;
-      
+
       if (!response) {
         showStatus('❌ Content script not loaded. Make sure you\'re on an Amazon cart page.', 'error');
         return;
       }
-      
+
       if (response.success) {
         hideStatus();
         displayItems(response.items);
         elements.results.classList.add('show');
         elements.downloadBtn.disabled = false;
-        elements.copyBtn.disabled = false;
         showStatus(`✅ Found ${response.itemCount} items!`, 'success');
         setTimeout(hideStatus, 2000);
       } else {
@@ -358,14 +393,12 @@ function clearResults() {
   currentItems = [];
   elements.results.classList.remove('show');
   elements.downloadBtn.disabled = true;
-  elements.copyBtn.disabled = true;
   hideStatus();
 }
 
 // Event listeners
 elements.scrapeBtn.addEventListener('click', scrapeCart);
 elements.downloadBtn.addEventListener('click', downloadJSON);
-elements.copyBtn.addEventListener('click', copyToClipboard);
 elements.clearBtn.addEventListener('click', clearResults);
 
 // Load saved items on popup open
@@ -374,6 +407,5 @@ chrome.storage.local.get('cartItems', (result) => {
     displayItems(result.cartItems);
     elements.results.classList.add('show');
     elements.downloadBtn.disabled = false;
-    elements.copyBtn.disabled = false;
   }
 });
