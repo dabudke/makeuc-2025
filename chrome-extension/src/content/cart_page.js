@@ -204,24 +204,20 @@ async function fetchDescriptionsForItems(items, concurrency = 3) {
   return items;
 }
 
-chrome.runtime.onMessage.addListener((request, sender, sendResponse) => {
-  if (request.action === 'extractCart') {
-    // extractCartItems is async; call and return true to indicate we'll sendResponse asynchronously
-    (async () => {
-      try {
-        const items = await extractCartItems();
-        sendResponse({
-          success: true,
-          itemCount: items.length,
-          items: items
-        });
-      } catch (error) {
-        sendResponse({
-          success: false,
-          error: error && error.message ? error.message : String(error)
-        });
-      }
-    })();
-    return true;
+extractCartItems().then(items => {
+  chrome.runtime.sendMessage({
+    action: 'cartData',
+    items
+  });
+});
+
+chrome.runtime.onMessage.addListener((message, sender, sendRespones) => {
+  if (message.action === 'scrapeCart') {
+    extractCartItems().then(items => {
+      chrome.runtime.sendMessage({
+        action: 'cartData',
+        items
+      });
+    });
   }
 });
