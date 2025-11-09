@@ -199,8 +199,8 @@ document.addEventListener('DOMContentLoaded', () => {
     setButtons(false);
 
     try {
-      const url = new URL('http://localhost:3000/sustainability');
-      url.searchParams.append('product', items[0].title);
+      const url = new URL('http://localhost:3000/sustainability/bulk');
+      url.searchParams.append('data', JSON.stringify(items.map((it) => it.name)));
       const res = await fetch(url, {
         method: 'GET',
         headers: { 'Content-Type': 'application/json' },

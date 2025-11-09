@@ -1,3 +1,5 @@
+@import "tailwindcss";
+
 /* Minimal popup styles - easy to read and maintain */
 body {
   margin:12px;
